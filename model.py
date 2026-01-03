@@ -27,7 +27,7 @@ scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 
 # Train model
-model = SVC()
+model = SVC(probability=True)
 model.fit(X_train, y_train)
 
 # Save model and scaler
@@ -35,3 +35,4 @@ pickle.dump(model, open("model.pkl", "wb"))
 pickle.dump(scaler, open("scaler.pkl", "wb"))
 
 print("Model and scaler saved successfully")
+model = SVC(probability=True)
