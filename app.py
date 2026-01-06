@@ -4,10 +4,10 @@ import pickle
 import os
 
 # -----------------------------
-# Page Config
+# Page Configuration
 # -----------------------------
 st.set_page_config(
-    page_title="Wine Quality Predictor",
+    page_title="Wine Quality Prediction",
     page_icon="🍷",
     layout="centered"
 )
@@ -21,23 +21,23 @@ model = pickle.load(open(os.path.join(BASE_DIR, "model.pkl"), "rb"))
 scaler = pickle.load(open(os.path.join(BASE_DIR, "scaler.pkl"), "rb"))
 
 # -----------------------------
-# Title & Description
+# App Title & Standards
 # -----------------------------
-st.title("🍷 Wine Quality Prediction App")
+st.title("🍷 Wine Quality Prediction Application")
 
 st.markdown("""
-This application predicts whether a wine is **GOOD** or **AVERAGE**
-based on its **chemical properties**.
+### 📌 Wine Quality Standards Used
+- ✅ **Good Wine** → Quality **≥ 7**
+- ⚠️ **Average Wine** → Quality **= 6**
+- ❌ **Bad Wine** → Quality **≤ 5**
 
-📌 **Definition used in this app:**  
-- Quality **≥ 7 → GOOD wine**  
-- Quality **< 7 → AVERAGE wine**
+Values close to the standard are treated as **Average**.
 """)
 
 st.divider()
 
 # -----------------------------
-# Input Sliders
+# User Inputs
 # -----------------------------
 fixed_acidity = st.slider("Fixed Acidity", 4.0, 16.0, 7.0)
 volatile_acidity = st.slider("Volatile Acidity", 0.1, 1.6, 0.7)
@@ -54,10 +54,10 @@ alcohol = st.slider("Alcohol (%)", 8.0, 15.0, 10.0)
 st.divider()
 
 # -----------------------------
-# Prediction Button
+# Prediction Block (SAFE)
 # -----------------------------
-if st.button("🔍 Predict Quality"):
-    # Prepare input
+if st.button("🔍 Predict Wine Quality"):
+
     input_data = np.array([[
         fixed_acidity, volatile_acidity, citric_acid,
         residual_sugar, chlorides, free_sulfur_dioxide,
@@ -67,28 +67,30 @@ if st.button("🔍 Predict Quality"):
 
     scaled_input = scaler.transform(input_data)
 
-    # Model prediction
     prediction = model.predict(scaled_input)[0]
-    confidence = model.predict_proba(scaled_input)[0][1]
+    probabilities = model.predict_proba(scaled_input)[0]
 
-    st.subheader(" Prediction Result")
+    # -----------------------------
+    # Prediction Result
+    # -----------------------------
+    st.subheader("📊 Prediction Result")
 
-    if prediction == 1:
+    if prediction == 2:
         st.success("🍷 GOOD quality wine")
-    else:
+    elif prediction == 1:
         st.warning("🍷 AVERAGE quality wine")
+    else:
+        st.error("🍷 BAD quality wine")
 
-    st.write(f"**Confidence:** {confidence * 100:.2f}%")
-
-    st.caption(
-        "Confidence shows how strongly the model believes this wine "
-        "belongs to the predicted category."
-    )
+    st.markdown("### 📈 Confidence Levels")
+    st.write(f"❌ Bad Wine: **{probabilities[0]*100:.2f}%**")
+    st.write(f"⚠️ Average Wine: **{probabilities[1]*100:.2f}%**")
+    st.write(f"✅ Good Wine: **{probabilities[2]*100:.2f}%**")
 
     st.divider()
 
     # -----------------------------
-    # Explanation Section
+    # WHAT MAKES A GOOD WINE (YOUR REQUIRED TEXT)
     # -----------------------------
     st.subheader(" What Makes a Good Wine?")
 
@@ -105,29 +107,26 @@ if st.button("🔍 Predict Quality"):
     st.divider()
 
     # -----------------------------
-    # Personalized Suggestions
+    # Suggestions Section
     # -----------------------------
     st.subheader("🔎 How to Improve This Wine")
 
-    suggestions = False
+    improvement = False
 
     if alcohol < 11.5:
-        st.info("🔹 Increasing **alcohol content** may improve quality.")
-        suggestions = True
+        st.info("🔹 Increase **alcohol** content to improve quality.")
+        improvement = True
 
     if sulphates < 0.7:
-        st.info("🔹 Higher **sulphates** are commonly seen in good wines.")
-        suggestions = True
+        st.info("🔹 Higher **sulphates** are common in good wines.")
+        improvement = True
 
     if volatile_acidity > 0.6:
-        st.info("🔹 Lower **volatile acidity** often improves taste.")
-        suggestions = True
+        st.info("🔹 Lower **volatile acidity** improves wine quality.")
+        improvement = True
 
-    if not suggestions:
-        st.success("✅ Your wine properties are already close to good-quality ranges!")
+    if not improvement:
+        st.success("✅ This wine already meets good-quality standards!")
 
-# -----------------------------
-# Footer
-# -----------------------------
 st.divider()
-st.caption("Built using Machine Learning & Streamlit 🍷")
+st.caption("Machine Learning based Wine Quality Prediction 🍷")

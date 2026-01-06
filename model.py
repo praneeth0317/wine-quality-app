@@ -4,35 +4,54 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVC
 
-# Load dataset
+# -----------------------------
+# Load Dataset
+# -----------------------------
 data = pd.read_csv("WineQT.csv")
 
-# Drop Id column if present
-if 'Id' in data.columns:
-    data.drop('Id', axis=1, inplace=True)
+# Drop unnecessary column
+if "Id" in data.columns:
+    data.drop("Id", axis=1, inplace=True)
 
-# Binary classification
-data['quality'] = data['quality'].apply(lambda x: 1 if x >= 7 else 0)
+# -----------------------------
+# Quality Labeling (3 Classes)
+# -----------------------------
+def quality_label(q):
+    if q >= 7:
+        return 2   # Good
+    elif q == 6:
+        return 1   # Average
+    else:
+        return 0   # Bad
 
-X = data.drop('quality', axis=1)
-y = data['quality']
+data["quality_label"] = data["quality"].apply(quality_label)
 
-# Train-test split
+X = data.drop(["quality", "quality_label"], axis=1)
+y = data["quality_label"]
+
+# -----------------------------
+# Train-Test Split
+# -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# Scaling
+# -----------------------------
+# Feature Scaling
+# -----------------------------
 scaler = MinMaxScaler()
-X_train = scaler.fit_transform(X_train)
+X_train_scaled = scaler.fit_transform(X_train)
 
-# Train model
+# -----------------------------
+# Train SVC Model (Multi-class)
+# -----------------------------
 model = SVC(probability=True)
-model.fit(X_train, y_train)
+model.fit(X_train_scaled, y_train)
 
-# Save model and scaler
+# -----------------------------
+# Save Model & Scaler
+# -----------------------------
 pickle.dump(model, open("model.pkl", "wb"))
 pickle.dump(scaler, open("scaler.pkl", "wb"))
 
-print("Model and scaler saved successfully")
-model = SVC(probability=True)
+print("✅ Model and scaler saved successfully")
